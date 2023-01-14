@@ -1,3 +1,4 @@
+//Creating Error handler Middleware
 module.exports = (e,req,res,next)=>{
        console.log(e);
        res.status(400).send(`<html>

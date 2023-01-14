@@ -4,8 +4,9 @@ const User = mongoose.model('User',usersSchema);
 const Otp = mongoose.model('Otp',otpSchema);
 const otpGenerator = require('../utility/index');
 const EmailValidationSchema = require('../validation/index');
-//const loginPage = require('../../public/login.html');
 
+
+//Creating SignUp App Controller
 const signUp = (req,res)=>{
     let user = new User(req.body);
     user.save((err,data)=>{
@@ -29,6 +30,7 @@ const signUp = (req,res)=>{
     })
 };
 
+//Creating Otp Generator Contoller
 const generateOtp = (req,res,next)=>{
     const email = req.body.emailId;
     const {error} = EmailValidationSchema.validate(req.body);
@@ -69,11 +71,13 @@ const generateOtp = (req,res,next)=>{
     
 }
 
+
+//Creating SignIn App Controller
 const signIn = (req,res)=>{
     let otpkey = req.body.otpKey;
     let otpvalue = req.body.otpValue;
-    User.findOne({'otpkey':otpkey,'otpvalue':otpvalue},(err,data)=>{
-        if(err){
+    Otp.findOne({'otpKey':otpkey,'otpValue':otpvalue},(err,data)=>{
+        if(!data || err){
             res.status(400).send(`<html>
             <h1>Invalid OTP</h1>
           </body>
@@ -89,6 +93,6 @@ const signIn = (req,res)=>{
 }
 
 
-
+//Exporting the controllers
 module.exports = {signUp,signIn,generateOtp};
 

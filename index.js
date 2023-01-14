@@ -1,36 +1,22 @@
-const express = require('express');
-require('express-async-errors');
-const rateLimit = require('express-rate-limit');
-const path = require('path');
-const app =express();
-const routes = require('./src/routes/routes');
-const PORT = 4000;
+const cluster = require('cluster');
+//Using os module to get number of cores
+let numCpus = require('os').cpus().length;
 
-app.use(rateLimit({windowMs:15*1*1000,max:100}));
+//checking if the cluster is Master so that we can create child workers
+if(cluster.isMaster){
+    //Creating child workers as per number of cores
+    for(let i=0;i<numCpus;i++){
+        cluster.fork();
+    }
 
-app.use(express.static(path.join(__dirname,'/public/')));
-
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-routes(app);
-
-app.use(require('./Middleware/errorHandler'));
-
-app.use((req,res)=>{
-    res.status(404).json("Not Found");
-});
-
-
-
-process.on('uncaughtException',(e)=>{
-    console.log(e);
-})
-
-process.on('unhandledRejection',(e)=>{
-    console.log(e);
-})
-
-app.listen(PORT,()=>{
-    console.log(`App is Listening to Port ${PORT}`);
-})
+    //Listening to exit event of cluster to start new worker if old worker has died
+    cluster.on('exit',()=>{
+        console.log(`worker with process id ${process.pid} has died`);
+        console.log('Starting new Worker');
+        cluster.fork();
+    })
+}
+else{
+    //If cluster is child worker then require application
+    require('./app');
+}
